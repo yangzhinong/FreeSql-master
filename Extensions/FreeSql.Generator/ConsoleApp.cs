@@ -232,8 +232,8 @@ new Colorful.Formatter("推荐在实体类目录创建 gen.bat，双击它重新
                 {
                     try
                     {
-                        var matchTable = fsql.DbFirst.GetTableByName(ArgsMatch);
-                        if (matchTable != null) tables.Add(matchTable);
+                        var matchTable =   fsql.DbFirst.GetTables(null,(ArgsMatch),true);
+                        if (matchTable != null) tables.AddRange(matchTable);
                     }
                     catch { }
                 }

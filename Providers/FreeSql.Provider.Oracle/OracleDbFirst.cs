@@ -12,11 +12,12 @@ using System.Text.RegularExpressions;
 
 namespace FreeSql.Oracle
 {
-    class OracleDbFirst : IDbFirst
+    internal class OracleDbFirst : IDbFirst
     {
-        IFreeSql _orm;
+        private IFreeSql _orm;
         protected CommonUtils _commonUtils;
         protected CommonExpression _commonExpression;
+
         public OracleDbFirst(IFreeSql orm, CommonUtils commonUtils, CommonExpression commonExpression)
         {
             _orm = orm;
@@ -25,7 +26,8 @@ namespace FreeSql.Oracle
         }
 
         public int GetDbType(DbColumnInfo column) => (int)GetSqlDbType(column);
-        OracleDbType GetSqlDbType(DbColumnInfo column)
+
+        private OracleDbType GetSqlDbType(DbColumnInfo column)
         {
             var dbfull = column.DbTypeTextFull.ToLower();
             switch (dbfull)
@@ -60,54 +62,71 @@ namespace FreeSql.Oracle
                 case "number":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["number(10,2)"]);
                     return OracleDbType.Decimal;
+
                 case "float":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["float(126)"]);
                     return OracleDbType.Double;
+
                 case "interval day to second":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["interval day(2) to second(6)"]);
                     return OracleDbType.IntervalDS;
+
                 case "date":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["date"]);
                     return OracleDbType.IntervalDS;
+
                 case "timestamp":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6)"]);
                     return OracleDbType.TimeStamp;
+
                 case "timestamp with local time zone":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["timestamp(6) with local time zone"]);
                     return OracleDbType.TimeStampLTZ;
+
                 case "blob":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["blob"]);
                     return OracleDbType.Blob;
+
                 case "nvarchar2":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OracleDbType.NVarchar2;
+
                 case "varchar2":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OracleDbType.Varchar2;
+
                 case "char":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OracleDbType.Char;
+
                 case "nchar":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OracleDbType.NChar;
+
                 case "clob":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OracleDbType.Clob;
+
                 case "nclob":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
                     return OracleDbType.NClob;
+
                 case "raw":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["blob"]);
                     return OracleDbType.Raw;
+
                 case "long raw":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["blob"]);
                     return OracleDbType.LongRaw;
+
                 case "binary_float":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["float(63)"]);
                     return OracleDbType.BinaryFloat;
+
                 case "binary_double":
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["float(126)"]);
                     return OracleDbType.BinaryDouble;
+
                 case "rowid":
                 default:
                     _dicDbToCs.TryAdd(dbfull, _dicDbToCs["nvarchar2(255)"]);
@@ -116,7 +135,8 @@ namespace FreeSql.Oracle
             throw new NotImplementedException($"未实现 {column.DbTypeTextFull} 类型映射");
         }
 
-        static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
+        private static ConcurrentDictionary<string, DbToCs> _dicDbToCs = new ConcurrentDictionary<string, DbToCs>(StringComparer.CurrentCultureIgnoreCase);
+
         static OracleDbFirst()
         {
             var defaultDbToCs = new Dictionary<string, DbToCs>() {
@@ -150,13 +170,18 @@ namespace FreeSql.Oracle
                 _dicDbToCs.TryAdd(kv.Key, kv.Value);
         }
 
-
         public string GetCsConvert(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbTypeTextFull, out var trydc) ? (column.IsNullable ? trydc.csConvert : trydc.csConvert.Replace("?", "")) : null;
+
         public string GetCsParse(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbTypeTextFull, out var trydc) ? trydc.csParse : null;
+
         public string GetCsStringify(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbTypeTextFull, out var trydc) ? trydc.csStringify : null;
+
         public string GetCsType(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbTypeTextFull, out var trydc) ? (column.IsNullable ? trydc.csType : trydc.csType.Replace("?", "")) : null;
+
         public Type GetCsTypeInfo(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbTypeTextFull, out var trydc) ? trydc.csTypeInfo : null;
+
         public string GetCsTypeValue(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbTypeTextFull, out var trydc) ? trydc.csTypeValue : null;
+
         public string GetDataReaderMethod(DbColumnInfo column) => _dicDbToCs.TryGetValue(column.DbTypeTextFull, out var trydc) ? trydc.dataReaderMethod : null;
 
         public List<string> GetDatabases()
@@ -186,6 +211,7 @@ namespace FreeSql.Oracle
         }
 
         public DbTableInfo GetTableByName(string name, bool ignoreCase = true) => GetTables(null, name, ignoreCase)?.FirstOrDefault();
+
         public List<DbTableInfo> GetTablesByDatabase(params string[] database) => GetTables(database, null, false);
 
         public List<DbTableInfo> GetTables(string[] database, string tablename, bool ignoreCase)
@@ -214,6 +240,7 @@ namespace FreeSql.Oracle
             }
 
             var databaseIn = string.Join(",", database.Select(a => _commonUtils.FormatSql("{0}", a)));
+            var tableWhere = (tbname == null) ? "" : $" and  {_commonUtils.FormatSql("regexp_like(a.table_name,{0},'i')", tbname[1])}";
             var sql = $@"
 select
 a.owner || '.' || a.table_name AS tbname,
@@ -223,7 +250,7 @@ b.comments,
 'TABLE' AS tp
 from all_tables a
 left join all_tab_comments b on b.owner = a.owner and b.table_name = a.table_name and b.table_type = 'TABLE'
-where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}){(tbname == null ? "" : $" and {(ignoreCase ? "lower(a.table_name)" : "a.table_name")}={_commonUtils.FormatSql("{0}", tbname[1])}")}
+where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}){tableWhere}
 
 UNION ALL
 
@@ -240,7 +267,7 @@ where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}){(tbname ==
             var ds = _orm.Ado.ExecuteArray(CommandType.Text, sql);
             if (ds == null) return loc1;
 
-            var loc6 = new List<string[]>(); 
+            var loc6 = new List<string[]>();
             var loc66 = new List<string[]>();
             var loc6_1000 = new List<string>();
             var loc66_1000 = new List<string>();
@@ -254,7 +281,7 @@ where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}){(tbname ==
                 if (database.Length == 1)
                 {
                     table_id = table_id.Substring(table_id.IndexOf('.') + 1);
-                    schema = "";
+                    // schema = "";
                 }
                 loc2.Add(table_id, new DbTableInfo { Id = table_id, Schema = schema, Name = table, Comment = comment, Type = type });
                 loc3.Add(table_id, new Dictionary<string, DbColumnInfo>());
@@ -269,6 +296,7 @@ where {(ignoreCase ? "lower(a.owner)" : "a.owner")} in ({databaseIn}){(tbname ==
                             loc6_1000.Clear();
                         }
                         break;
+
                     case DbTableType.StoreProcedure:
                         loc66_1000.Add(table.Replace("'", "''"));
                         if (loc66_1000.Count >= 999)
@@ -399,7 +427,7 @@ case when exists(select 1 from all_constraints where constraint_name = a.index_n
 case when c.descend = 'DESC' then 1 else 0 end,
 c.column_position
 from all_indexes a,
-all_ind_columns c 
+all_ind_columns c
 where a.index_name = c.index_name
 and a.table_owner = c.table_owner
 and a.table_name = c.table_name
